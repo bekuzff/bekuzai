@@ -1,1 +1,114 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bekuzAI Assistant</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #09090b;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #a1a1aa;
+        }
+    </style>
+</head>
+<body>
 
+    <div class="container">
+        <h1>bekuzAI Server & Assistant</h1>
+        <p>AI Assistant faol holatda. Saytingizga muvaffaqiyatli ulangan!</p>
+    </div>
+
+    <!-- bekuzAI Assistant Widget -->
+    <div id="ai-chat-widget">
+        <button id="ai-chat-toggle" onclick="toggleChat()">💬 bekuzAI Yordamchi</button>
+
+        <div id="ai-chat-box" class="hidden">
+            <div class="ai-chat-header">
+                <span>bekuzAI yordamchi</span>
+                <button onclick="toggleChat()">✖</button>
+            </div>
+            <div id="ai-chat-messages" class="ai-chat-messages">
+                <div class="ai-msg bot">Salom! Men bekuzAI yordamchisiman. Dasturlash va kodlar bo‘yicha qanday yordam bera olaman?</div>
+            </div>
+            <div class="ai-chat-input-area">
+                <input type="text" id="ai-user-input" placeholder="Savol yoki kodingizni yozing..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Yuborish</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    #ai-chat-widget { position: fixed; bottom: 20px; right: 20px; font-family: sans-serif; z-index: 99999; }
+    #ai-chat-toggle { background: #10b981; color: white; border: none; padding: 14px 24px; border-radius: 30px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.4); font-size: 15px; }
+    #ai-chat-box { width: 350px; height: 480px; background: #18181b; color: white; border-radius: 12px; display: flex; flex-direction: column; position: absolute; bottom: 65px; right: 0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #27272a; }
+    #ai-chat-box.hidden { display: none; }
+    .ai-chat-header { background: #09090b; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; border-bottom: 1px solid #27272a; }
+    .ai-chat-header button { background: none; border: none; color: #a1a1aa; cursor: pointer; font-size: 18px; }
+    .ai-chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #09090b; }
+    .ai-msg { padding: 10px 14px; border-radius: 8px; max-width: 85%; font-size: 13px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+    .ai-msg.bot { background: #27272a; color: #e4e4e7; align-self: flex-start; }
+    .ai-msg.user { background: #10b981; color: white; align-self: flex-end; }
+    .ai-chat-input-area { display: flex; padding: 10px; background: #18181b; border-top: 1px solid #27272a; }
+    .ai-chat-input-area input { flex: 1; padding: 10px; background: #09090b; border: 1px solid #27272a; color: white; border-radius: 6px; outline: none; }
+    .ai-chat-input-area button { background: #10b981; color: white; border: none; padding: 10px 14px; margin-left: 6px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    </style>
+
+    <script>
+    function toggleChat() {
+        document.getElementById('ai-chat-box').classList.toggle('hidden');
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('ai-user-input');
+        const container = document.getElementById('ai-chat-messages');
+        const text = input.value.trim();
+        if (!text) return;
+
+        container.innerHTML += `<div class="ai-msg user">${text}</div>`;
+        input.value = '';
+        container.scrollTop = container.scrollHeight;
+
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'ai-msg bot';
+        loadingDiv.innerText = 'bekuzAI o‘ylamoqda...';
+        container.appendChild(loadingDiv);
+        container.scrollTop = container.scrollHeight;
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await res.json();
+            loadingDiv.innerText = data.reply || data.choices?.[0]?.message?.content || "Javob olindi!";
+        } catch (err) {
+            loadingDiv.innerText = "Xatolik yuz berdi. Qayta urinib ko‘ring.";
+        }
+        container.scrollTop = container.scrollHeight;
+    }
+    </script>
+</body>
+</html>
